@@ -45,10 +45,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={onResetToHome}
             className="flex items-center gap-3 cursor-pointer group"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 p-0.5 shadow-md shadow-indigo-500/20 group-hover:scale-105 transition">
-              <div className="w-full h-full bg-white rounded-[10px] flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-indigo-600 group-hover:rotate-12 transition duration-300" />
-              </div>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 p-0.5 shadow-md shadow-indigo-500/20 group-hover:scale-105 transition overflow-hidden flex-shrink-0">
+              <img src="/app-icon.jpg" alt="Logo" className="w-full h-full object-cover rounded-[10px]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
