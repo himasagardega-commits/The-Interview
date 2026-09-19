@@ -35,6 +35,7 @@ import { getStoredApiKey, saveInterviewSession, getInterviewHistory } from "@/li
 import { generateNextAdaptiveQuestion, evaluateCandidateAnswer } from "@/lib/interviewEngine";
 import { CameraMonitor } from "./CameraMonitor";
 import { SpeechInterface } from "./SpeechInterface";
+import { DeviceSetup } from "./DeviceSetup";
 
 interface InterviewRoomProps {
   session: InterviewSession;
@@ -68,6 +69,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({
   const [isEvaluating, setIsEvaluating] = useState<boolean>(false);
   const [isEvaluated, setIsEvaluated] = useState<boolean>(false);
   const [pendingNextQuestion, setPendingNextQuestion] = useState<QuestionItem | null>(null);
+  const [isDeviceSetupComplete, setIsDeviceSetupComplete] = useState<boolean>(false);
 
   // Proctoring Security Violation State
   const [terminationViolation, setTerminationViolation] = useState<ViolationRecord | null>(() => {
@@ -681,6 +683,10 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({
         </div>
       </div>
     );
+  }
+
+  if (!isDeviceSetupComplete && !terminationViolation) {
+    return <DeviceSetup onSetupComplete={() => setIsDeviceSetupComplete(true)} onCancel={onExit} />;
   }
 
   return (
