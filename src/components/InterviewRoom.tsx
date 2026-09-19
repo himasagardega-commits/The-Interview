@@ -527,9 +527,9 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({
       setPendingNextQuestion(nextQ);
       setIsEvaluating(false);
       setIsEvaluated(true);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Evaluation or question generation failed:", err);
-      alert("Error evaluating answer. Please try again.");
+      alert(`Error evaluating answer: ${err?.message || JSON.stringify(err) || String(err)}. Please try again.`);
       setIsEvaluating(false);
     }
   };
