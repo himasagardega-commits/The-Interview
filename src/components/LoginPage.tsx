@@ -39,17 +39,17 @@ export const LoginPage: React.FC = () => {
     return null;
   };
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearMessages();
     try {
-      loginWithEmail(email, password);
+      await loginWithEmail(email, password);
     } catch (err: any) {
       setError(err.message || "Authentication failed.");
     }
   };
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearMessages();
     try {
@@ -57,7 +57,7 @@ export const LoginPage: React.FC = () => {
       const passwordError = validatePassword(password);
       if (passwordError) throw new Error(passwordError);
       
-      registerWithEmail(email, password, name);
+      await registerWithEmail(email, password, name);
       switchView("login");
       setSuccess("Registration successful. Please log in.");
     } catch (err: any) {
@@ -74,7 +74,8 @@ export const LoginPage: React.FC = () => {
       return;
     }
     
-    if (!checkUserExists(email)) {
+    const userExists = await checkUserExists(email);
+    if (!userExists) {
       setError("No account found with this email address.");
       return;
     }
@@ -107,7 +108,7 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handleResetSubmit = (e: React.FormEvent) => {
+  const handleResetSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearMessages();
     
@@ -123,7 +124,7 @@ export const LoginPage: React.FC = () => {
     }
     
     try {
-      resetPassword(email, password);
+      await resetPassword(email, password);
       setSuccess("Password has been reset successfully. Please log in.");
       switchView("login");
     } catch (err: any) {

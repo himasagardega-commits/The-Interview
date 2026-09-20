@@ -7,10 +7,10 @@ import { getStoredUser, setStoredUser } from "@/lib/storage";
 interface AuthContextType {
   user: UserProfile | null;
   isLoading: boolean;
-  loginWithEmail: (email: string, password: string) => void;
-  registerWithEmail: (email: string, password: string, name: string) => void;
-  checkUserExists: (email: string) => boolean;
-  resetPassword: (email: string, newPassword: string) => void;
+  loginWithEmail: (email: string, password: string) => Promise<void>;
+  registerWithEmail: (email: string, password: string, name: string) => Promise<void>;
+  checkUserExists: (email: string) => Promise<boolean>;
+  resetPassword: (email: string, newPassword: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -25,83 +25,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (saved) {
       setUser(saved);
     }
-    // We no longer auto-login a default user.
-    // If there is no user, they stay logged out (user === null).
     setIsLoading(false);
   }, []);
 
-  const loginWithEmail = (email: string, password: string) => {
-    const cleanEmail = email.trim().toLowerCase();
-    
-    // Fetch registered users from localStorage
-    const rawUsers = localStorage.getItem("the_interview_registered_users");
-    const users = rawUsers ? JSON.parse(rawUsers) : [];
-    
-    const existingUser = users.find((u: any) => u.email === cleanEmail);
-    if (!existingUser) {
-      throw new Error("No account found with this email.");
+  const loginWithEmail = async (email: string, password: string) => {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Authentication failed.");
     }
-    if (existingUser.password !== password) {
-      throw new Error("Incorrect password.");
-    }
-    
+
     const profileUser: UserProfile = {
-      id: existingUser.id,
-      name: existingUser.name,
-      email: existingUser.email,
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(existingUser.name)}&background=4f46e5&color=fff&bold=true`,
+      id: data.user.id,
+      name: data.user.name,
+      email: data.user.email,
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.name)}&background=4f46e5&color=fff&bold=true`,
       role: "Candidate",
-      totalInterviews: existingUser.totalInterviews || 0,
-      createdAt: existingUser.createdAt,
+      totalInterviews: 0,
+      createdAt: data.user.createdAt,
     };
     
     setUser(profileUser);
     setStoredUser(profileUser);
   };
 
-  const registerWithEmail = (email: string, password: string, name: string) => {
-    const cleanEmail = email.trim().toLowerCase();
-    
-    // Fetch registered users
-    const rawUsers = localStorage.getItem("the_interview_registered_users");
-    const users = rawUsers ? JSON.parse(rawUsers) : [];
-    
-    if (users.find((u: any) => u.email === cleanEmail)) {
-      throw new Error("An account with this email already exists.");
+  const registerWithEmail = async (email: string, password: string, name: string) => {
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Registration failed.");
     }
-    
-    const newUserRecord = {
-      id: `usr-${Date.now().toString().slice(-6)}`,
-      name: name.trim(),
-      email: cleanEmail,
-      password, // In a real app this would be hashed
-      totalInterviews: 0,
-      createdAt: new Date().toISOString(),
-    };
-    
-    users.push(newUserRecord);
-    localStorage.setItem("the_interview_registered_users", JSON.stringify(users));
   };
 
-  const checkUserExists = (email: string) => {
-    const rawUsers = localStorage.getItem("the_interview_registered_users");
-    const users = rawUsers ? JSON.parse(rawUsers) : [];
-    return !!users.find((u: any) => u.email === email.trim().toLowerCase());
+  const checkUserExists = async (email: string) => {
+    const response = await fetch("/api/auth/check-user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    
+    const data = await response.json();
+    return !!data.exists;
   };
 
-  const resetPassword = (email: string, newPassword: string) => {
-    const cleanEmail = email.trim().toLowerCase();
-    const rawUsers = localStorage.getItem("the_interview_registered_users");
-    const users = rawUsers ? JSON.parse(rawUsers) : [];
-    const index = users.findIndex((u: any) => u.email === cleanEmail);
-    if (index === -1) throw new Error("User not found.");
-    
-    if (users[index].password === newPassword) {
-      throw new Error("New password cannot be the same as your old password.");
+  const resetPassword = async (email: string, newPassword: string) => {
+    const response = await fetch("/api/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, newPassword }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to reset password.");
     }
-    
-    users[index].password = newPassword;
-    localStorage.setItem("the_interview_registered_users", JSON.stringify(users));
   };
 
   const logout = () => {
