@@ -56,7 +56,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error("Error sending OTP email:", error);
     return NextResponse.json(
-      { error: "Failed to send email. Check server logs." },
+      { error: `Email failed: ${error.message || "Check server logs"}` },
       { status: 500 }
     );
   }
