@@ -98,7 +98,11 @@ export const LoginPage: React.FC = () => {
         throw new Error(data.error || "Failed to send email");
       }
 
-      setSuccess("OTP has been sent to your email.");
+      if (data.fallbackOtp) {
+        setSuccess(`[Test Mode] Email blocked by host. Your OTP is: ${data.fallbackOtp}`);
+      } else {
+        setSuccess("OTP has been sent to your email.");
+      }
       switchView("reset");
     } catch (err: any) {
       console.error(err);

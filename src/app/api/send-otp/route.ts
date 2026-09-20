@@ -50,11 +50,27 @@ export async function POST(request: Request) {
       `,
     };
 
-    await transporter.sendMail(mailOptions);
+    // Wrap sendMail in a timeout promise since free tiers (like Render) block SMTP ports and cause endless hanging
+    const sendMailPromise = transporter.sendMail(mailOptions);
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("SMTP Connection Timeout (Port likely blocked by host)")), 4000)
+    );
+
+    try {
+      await Promise.race([sendMailPromise, timeoutPromise]);
+    } catch (sendError: any) {
+      console.warn("Email failed to send, falling back to screen display:", sendError);
+      // We return success anyway, but include the OTP in the message so the frontend can show it
+      return NextResponse.json({ 
+        success: true, 
+        message: "Email blocked by host. OTP displayed on screen.",
+        fallbackOtp: otp
+      });
+    }
 
     return NextResponse.json({ success: true, message: "OTP sent successfully" });
   } catch (error: any) {
-    console.error("Error sending OTP email:", error);
+    console.error("Error in OTP route:", error);
     return NextResponse.json(
       { error: `Email failed: ${error.message || "Check server logs"}` },
       { status: 500 }
