@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 export async function POST(request: Request) {
   try {
@@ -9,33 +9,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email and OTP are required" }, { status: 400 });
     }
 
-    const { EMAIL_USER, EMAIL_PASS } = process.env;
+    const { RESEND_API_KEY, EMAIL_USER } = process.env;
 
-    if (!EMAIL_USER || !EMAIL_PASS) {
-      return NextResponse.json(
-        { error: "Email configuration is missing on the server. Please setup EMAIL_USER and EMAIL_PASS." },
-        { status: 500 }
-      );
+    if (!RESEND_API_KEY) {
+      // Fallback for local testing if no key is present
+      console.warn("No RESEND_API_KEY found. Falling back to UI display.");
+      return NextResponse.json({ 
+        success: true, 
+        message: "API Key missing. OTP displayed on screen.",
+        fallbackOtp: otp
+      });
     }
 
-    if (EMAIL_PASS === "your_app_password_here") {
-      return NextResponse.json(
-        { error: "Setup Required: Please add your Gmail App Password to .env.local and restart the server." },
-        { status: 400 }
-      );
-    }
+    const resend = new Resend(RESEND_API_KEY);
 
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASS,
-      },
-    });
+    // Resend requires verified domains to send from custom emails.
+    // If you don't have a verified domain, you MUST send from 'onboarding@resend.dev'
+    const fromEmail = 'onboarding@resend.dev';
 
-    const mailOptions = {
-      from: `"The Interview App" <${EMAIL_USER}>`,
-      to: email,
+    const { data, error } = await resend.emails.send({
+      from: `The Interview App <${fromEmail}>`,
+      to: [email],
       subject: "Your Password Reset OTP",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
@@ -48,22 +42,13 @@ export async function POST(request: Request) {
           <p style="color: #64748b; font-size: 14px;">If you didn't request this, you can safely ignore this email.</p>
         </div>
       `,
-    };
+    });
 
-    // Wrap sendMail in a timeout promise since free tiers (like Render) block SMTP ports and cause endless hanging
-    const sendMailPromise = transporter.sendMail(mailOptions);
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("SMTP Connection Timeout (Port likely blocked by host)")), 4000)
-    );
-
-    try {
-      await Promise.race([sendMailPromise, timeoutPromise]);
-    } catch (sendError: any) {
-      console.warn("Email failed to send, falling back to screen display:", sendError);
-      // We return success anyway, but include the OTP in the message so the frontend can show it
+    if (error) {
+      console.error("Resend API Error:", error);
       return NextResponse.json({ 
         success: true, 
-        message: "Email blocked by host. OTP displayed on screen.",
+        message: "Email failed to send, but OTP displayed on screen.",
         fallbackOtp: otp
       });
     }
