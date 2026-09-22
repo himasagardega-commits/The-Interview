@@ -105,7 +105,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <div className="flex items-center gap-1.5">
                       <ShieldCheck className="w-4 h-4 text-emerald-600" />
                       <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">
-                        Account Verified
+                        {user?.role || "Candidate"} Account
                       </span>
                     </div>
                     <p className="text-xs text-slate-900 font-bold mt-1">
@@ -113,6 +113,30 @@ export const Navbar: React.FC<NavbarProps> = ({
                     </p>
                     <p className="text-[11px] text-slate-500 font-medium">{user?.email}</p>
                   </div>
+                  
+                  {user?.role === "ADMIN" && (
+                    <button
+                      onClick={() => {
+                        window.location.href = "/admin";
+                      }}
+                      className="w-full text-left px-4 py-2 text-xs text-indigo-600 hover:bg-indigo-50 flex items-center gap-2 transition"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      Admin Dashboard
+                    </button>
+                  )}
+
+                  {user?.role === "MANAGER" && (
+                    <button
+                      onClick={() => {
+                        window.location.href = "/manager";
+                      }}
+                      className="w-full text-left px-4 py-2 text-xs text-indigo-600 hover:bg-indigo-50 flex items-center gap-2 transition"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" />
+                      Manager Dashboard
+                    </button>
+                  )}
 
                   <button
                     onClick={() => {

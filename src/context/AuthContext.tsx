@@ -46,7 +46,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name: data.user.name,
       email: data.user.email,
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.name)}&background=4f46e5&color=fff&bold=true`,
-      role: "Candidate",
+      role: data.user.role || "CANDIDATE",
+      isApproved: data.user.isApproved,
       totalInterviews: 0,
       createdAt: data.user.createdAt,
     };
