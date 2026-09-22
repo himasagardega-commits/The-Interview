@@ -229,7 +229,7 @@ Provide:
 4. keyStrengths (3-4 bullet points)
 5. criticalWeaknesses (2-3 bullet points)
 6. technicalGaps (2-3 bullet points)
-7. preparationRoadmap (3 structured steps with step number, title, description, and list of resources)
+7. preparationRoadmap (3 structured steps with step number, title, description, and list of resources. CRITICAL: Do NOT recommend any mock interview platforms or general practice websites. Instead, for every step's resources, provide specific popular English-language YouTube video titles that teach the missing skills, ending with ' (YouTube)' so the user knows it is a video.)
 
 Respond strictly in JSON matching the schema.
 `;
