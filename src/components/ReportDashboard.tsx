@@ -19,7 +19,7 @@ import {
   FileCheck,
   ShieldCheck,
   TrendingUp,
-  Youtube,
+  PlayCircle,
   ExternalLink,
 } from "lucide-react";
 import { FinalReport, InterviewSession } from "@/types";
@@ -246,7 +246,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
         {report.atsSummary.missingSkills.length > 0 && (
           <div className="p-5 bg-indigo-50/50 border border-indigo-200 rounded-2xl space-y-3 mt-5">
             <div className="flex items-center gap-2 text-indigo-700 text-xs font-bold uppercase tracking-wider">
-              <Youtube className="w-4 h-4 text-indigo-600" />
+              <PlayCircle className="w-4 h-4 text-indigo-600" />
               <span>📚 You Can Learn (Top YouTube Resources)</span>
             </div>
             <p className="text-xs text-slate-600 mb-3">
@@ -266,7 +266,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
                     <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600" />
                   </div>
                   <div className="flex items-center gap-1.5 text-[10px] font-bold text-rose-600 uppercase">
-                    <Youtube className="w-3.5 h-3.5" />
+                    <PlayCircle className="w-3.5 h-3.5" />
                     <span>Watch Videos</span>
                   </div>
                 </a>
@@ -296,7 +296,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-[11px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg border border-rose-100 transition-colors shrink-0 sm:mt-0 mt-2 sm:ml-0 ml-7"
                 >
-                  <Youtube className="w-3.5 h-3.5" />
+                  <PlayCircle className="w-3.5 h-3.5" />
                   Find Videos
                 </a>
               </li>
@@ -566,7 +566,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
                           rel="noopener noreferrer"
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-slate-700 border border-slate-200 hover:border-rose-300 hover:text-rose-700 transition-colors text-[11px] shadow-sm font-medium group"
                         >
-                          <Youtube className="w-3.5 h-3.5 text-rose-500 group-hover:text-rose-600" />
+                          <PlayCircle className="w-3.5 h-3.5 text-rose-500 group-hover:text-rose-600" />
                           <span>{res}</span>
                         </a>
                       ))}

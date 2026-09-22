@@ -42,7 +42,15 @@ export const SpeechInterface: React.FC<SpeechInterfaceProps> = ({
   const [isTranscribing, setIsTranscribing] = useState<boolean>(false);
   const isListeningRef = useRef<boolean>(false);
   const [transcript, setTranscript] = useState<string>("");
+  const transcriptRef = useRef<string>("");
+  const baseTranscriptRef = useRef<string>("");
+  const absoluteBaseTranscriptRef = useRef<string>("");
   const [durationSeconds, setDurationSeconds] = useState<number>(0);
+
+  // Keep transcriptRef in sync for access inside event handlers
+  useEffect(() => {
+    transcriptRef.current = transcript;
+  }, [transcript]);
   const [isAiSpeaking, setIsAiSpeaking] = useState<boolean>(false);
   const [speechSupported, setSpeechSupported] = useState<boolean>(true);
   const [detectedFillers, setDetectedFillers] = useState<string[]>([]);
@@ -125,22 +133,30 @@ export const SpeechInterface: React.FC<SpeechInterfaceProps> = ({
     recognition.onresult = (event: any) => {
       // Only update if we aren't currently waiting on Gemini
       if (!isTranscribing) {
-        let finalTranscript = "";
+        let currentSessionTranscript = "";
         for (let i = 0; i < event.results.length; i++) {
-          finalTranscript += event.results[i][0].transcript + " ";
+          currentSessionTranscript += event.results[i][0].transcript + " ";
         }
-        setTranscript(finalTranscript);
+        
+        const newTranscript = baseTranscriptRef.current 
+          ? baseTranscriptRef.current + " " + currentSessionTranscript.trim()
+          : currentSessionTranscript.trim();
+          
+        setTranscript(newTranscript);
       }
     };
 
     recognition.onerror = (event: any) => {
-      if (event.error !== "no-speech") {
-        setIsListening(false);
-        isListeningRef.current = false;
-      }
+      console.warn("Speech recognition error:", event.error);
+      // Do not stop listening on error to allow continuous recording.
+      // onend will handle restarting the recognition.
     };
 
     recognition.onend = () => {
+      // When a session ends, whatever is in transcriptRef becomes the new base
+      // for the next session so we don't overwrite previous text.
+      baseTranscriptRef.current = transcriptRef.current;
+      
       if (isListeningRef.current) {
         try {
           recognition.start();
@@ -198,33 +214,43 @@ export const SpeechInterface: React.FC<SpeechInterfaceProps> = ({
     setDetectedFillers(found);
   }, [transcript, durationSeconds]);
 
-  const processAudioWithGemini = async (audioBlob: Blob) => {
-    setIsTranscribing(true);
-    try {
+  const processAudioWithGemini = (audioBlob: Blob): Promise<string> => {
+    return new Promise((resolve) => {
+      setIsTranscribing(true);
       const reader = new FileReader();
       reader.readAsDataURL(audioBlob);
       reader.onloadend = async () => {
-        const base64Data = (reader.result as string).split(",")[1];
-        
-        const response = await fetch("/api/transcribe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            audioBase64: base64Data,
-            mimeType: audioBlob.type || "audio/webm",
-          }),
-        });
-        
-        const data = await response.json();
-        if (data.text) {
-          setTranscript(data.text);
+        try {
+          const base64Data = (reader.result as string).split(",")[1];
+          
+          const response = await fetch("/api/transcribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              audioBase64: base64Data,
+              mimeType: audioBlob.type || "audio/webm",
+            }),
+          });
+          
+          const data = await response.json();
+          if (data.text) {
+            const newTranscript = absoluteBaseTranscriptRef.current
+              ? absoluteBaseTranscriptRef.current + " " + data.text.trim()
+              : data.text.trim();
+            setTranscript(newTranscript);
+            baseTranscriptRef.current = newTranscript;
+            resolve(newTranscript);
+          } else {
+            resolve(transcriptRef.current);
+          }
+        } catch (err) {
+          console.error("Gemini Transcription failed, using browser fallback:", err);
+          resolve(transcriptRef.current);
+        } finally {
+          setIsTranscribing(false);
         }
       };
-    } catch (err) {
-      console.error("Gemini Transcription failed, using browser fallback:", err);
-    } finally {
-      setIsTranscribing(false);
-    }
+    });
   };
 
   const toggleListening = async () => {
@@ -246,11 +272,19 @@ export const SpeechInterface: React.FC<SpeechInterfaceProps> = ({
       }
       isListeningRef.current = true;
       setIsListening(true);
+      baseTranscriptRef.current = transcriptRef.current;
+      absoluteBaseTranscriptRef.current = transcriptRef.current;
       audioChunksRef.current = [];
 
       try {
         // Start High-Fidelity Audio Recording for Gemini
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            autoGainControl: true,
+            echoCancellation: true,
+            noiseSuppression: true,
+          } 
+        });
         const mediaRecorder = new MediaRecorder(stream);
         
         mediaRecorder.ondataavailable = (event) => {
@@ -284,7 +318,7 @@ export const SpeechInterface: React.FC<SpeechInterfaceProps> = ({
   const words = transcript.trim().split(/\s+/).filter(Boolean);
   const wordCount = words.length;
 
-  const handleFinishAndEvaluate = () => {
+  const handleFinishAndEvaluate = async () => {
     if (wordCount > 20000) {
       alert(
         `Your response has ${wordCount.toLocaleString()} words, which exceeds the maximum limit of 20,000 words. Please trim your response.`
@@ -294,14 +328,28 @@ export const SpeechInterface: React.FC<SpeechInterfaceProps> = ({
 
     isListeningRef.current = false;
     setIsListening(false);
+    let finalAnswer = transcriptRef.current;
+
     try {
       recognitionRef.current?.stop();
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-        mediaRecorderRef.current.stop();
-      }
     } catch {}
 
-    const finalAnswer = transcript.trim() || "No answer provided by candidate.";
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      const recorder = mediaRecorderRef.current;
+      finalAnswer = await new Promise<string>((resolve) => {
+        recorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+          if (recorder.stream) {
+            recorder.stream.getTracks().forEach((track) => track.stop());
+          }
+          const finalSubText = await processAudioWithGemini(audioBlob);
+          resolve(finalSubText);
+        };
+        recorder.stop();
+      });
+    }
+
+    finalAnswer = finalAnswer.trim() || "No answer provided by candidate.";
     onSubmitAnswer(finalAnswer, Math.max(10, durationSeconds));
   };
 
