@@ -556,18 +556,22 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
                 <p className="text-xs text-slate-600 leading-relaxed">
                   {item.description}
                 </p>
-                {item.resources && item.resources.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {item.resources.map((res, rIdx) => (
-                      <span
-                        key={rIdx}
-                        className="px-2.5 py-1 rounded-lg bg-white text-slate-700 border border-slate-200 text-[11px] shadow-2xs font-medium"
-                      >
-                        📖 {res}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                  {item.resources && item.resources.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {item.resources.map((res, rIdx) => (
+                        <a
+                          key={rIdx}
+                          href={`https://www.youtube.com/results?search_query=${encodeURIComponent(res)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-slate-700 border border-slate-200 hover:border-rose-300 hover:text-rose-700 transition-colors text-[11px] shadow-sm font-medium group"
+                        >
+                          <Youtube className="w-3.5 h-3.5 text-rose-500 group-hover:text-rose-600" />
+                          <span>{res}</span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
               </div>
             </div>
           ))}
