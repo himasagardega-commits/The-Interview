@@ -114,6 +114,7 @@ export const ResumeSetupStep: React.FC<ResumeSetupStepProps> = ({
       if (res.ok) {
         const data = await res.json();
         if (data.resumeData && data.atsScore) {
+          data.resumeData.candidateName = user?.name || data.resumeData.candidateName;
           await onStartInterviewDirectly(data.resumeData, data.atsScore, targetRole.trim(), "");
           return;
         }
@@ -125,7 +126,7 @@ export const ResumeSetupStep: React.FC<ResumeSetupStepProps> = ({
 
       // Extract candidate name from first clean line if possible
       const candidateNameMatch = resumeText.split("\n").map(l => l.trim()).find(l => l.length > 2 && l.length < 35 && !l.includes("@") && !l.includes("http"));
-      const fallbackName = candidateNameMatch || "Candidate";
+      const fallbackName = user?.name || candidateNameMatch || "Candidate";
 
       // Instant local fallback so the user is NEVER blocked from starting their interview
       const fallbackResumeData: ResumeData = {
