@@ -34,11 +34,11 @@ export default function ManagerDashboard() {
 
   useEffect(() => {
     const user = getStoredUser();
-    if (!user || user.role !== "MANAGER") {
+    if (!user || (user.role !== "MANAGER" && user.role !== "ADMIN")) {
       router.push("/auth/login");
       return;
     }
-    if (!user.isApproved) {
+    if (user.role === "MANAGER" && !user.isApproved) {
       router.push("/");
       return;
     }
