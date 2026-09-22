@@ -21,7 +21,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     const user = getStoredUser();
     if (!user || user.role !== "ADMIN") {
-      router.push("/auth/login");
+      router.push("/");
       return;
     }
 
@@ -71,7 +71,7 @@ export default function AdminDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem("the_interview_user_profile");
-    router.push("/auth/login");
+    router.push("/");
   };
 
   if (loading) {
