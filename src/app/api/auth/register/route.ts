@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password } = await req.json();
+    const { name, email, password, role: requestedRole } = await req.json();
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -20,12 +20,26 @@ export async function POST(req: Request) {
 
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
+    
+    let role = "CANDIDATE";
+    let isApproved = false;
+
+    if (requestedRole === "MANAGER") {
+      role = "MANAGER";
+    }
+
+    if (email.toLowerCase() === "admin@theinterview.com") {
+      role = "ADMIN";
+      isApproved = true;
+    }
 
     const newUser = await prisma.user.create({
       data: {
         name,
         email,
         passwordHash,
+        role: role as any,
+        isApproved,
       },
     });
 

@@ -7,11 +7,46 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  MANAGER
+  CANDIDATE
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
   email        String   @unique
   passwordHash String
+  role         Role     @default(CANDIDATE)
+  isApproved   Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  sessions     InterviewSession[]
+}
+
+model InterviewSession {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  targetRole      String
+  resumeText      String?
+  videoUrl        String?
+  overallScore    Int?
+  recommendation  String?
+  createdAt       DateTime @default(now())
+
+  evaluations     QuestionEvaluation[]
+}
+
+model QuestionEvaluation {
+  id                 String   @id @default(cuid())
+  interviewSessionId String
+  session            InterviewSession @relation(fields: [interviewSessionId], references: [id], onDelete: Cascade)
+  questionText       String
+  candidateAnswer    String?
+  score              Int
+  feedback           String
+  idealModelAnswer   String
 }

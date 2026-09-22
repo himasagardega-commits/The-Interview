@@ -21,6 +21,7 @@ import {
   ResumeData,
 } from "@/types";
 import { RefreshCw } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { LoginPage } from "@/components/LoginPage";
 import { useAuth } from "@/context/AuthContext";
 
@@ -110,6 +111,16 @@ export default function Home() {
 
       setActiveSession(finalSession);
       saveInterviewSession(finalSession);
+      
+      // Save to database
+      if (user) {
+        fetch("/api/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session: finalSession, userId: user.id }),
+        }).catch(e => console.error("Failed to save to db:", e));
+      }
+
       setCurrentStep("report");
     } catch (err) {
       console.error("Failed to generate final report:", err);
@@ -121,6 +132,16 @@ export default function Home() {
       };
       setActiveSession(finalSession);
       saveInterviewSession(finalSession);
+      
+      // Save to database
+      if (user) {
+        fetch("/api/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session: finalSession, userId: user.id }),
+        }).catch(e => console.error("Failed to save to db:", e));
+      }
+
       setCurrentStep("report");
     } finally {
       setIsGeneratingReport(false);
@@ -142,12 +163,45 @@ export default function Home() {
     setCurrentStep("setup");
   };
 
+  const router = useRouter();
+
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-slate-50">Loading...</div>;
   }
 
   if (!user) {
     return <LoginPage />;
+  }
+
+  if (user.role === "ADMIN") {
+    router.push("/admin");
+    return null;
+  }
+
+  if (user.role === "MANAGER") {
+    if (!user.isApproved) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50">
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center max-w-md">
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Pending Approval</h2>
+            <p className="text-sm text-slate-600 mb-6">
+              Your Manager account is currently pending approval by the System Admin. You will gain access to the dashboard once approved.
+            </p>
+            <button
+              onClick={() => {
+                localStorage.removeItem("the_interview_user_profile");
+                window.location.reload();
+              }}
+              className="text-sm font-bold text-indigo-600 hover:text-indigo-700"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+      );
+    }
+    router.push("/manager");
+    return null;
   }
 
   return (
