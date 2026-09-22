@@ -35,7 +35,7 @@ export default function ManagerDashboard() {
   useEffect(() => {
     const user = getStoredUser();
     if (!user || (user.role !== "MANAGER" && user.role !== "ADMIN")) {
-      router.push("/auth/login");
+      router.push("/");
       return;
     }
     if (user.role === "MANAGER" && !user.isApproved) {
@@ -62,7 +62,7 @@ export default function ManagerDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem("the_interview_user_profile");
-    router.push("/auth/login");
+    router.push("/");
   };
 
   if (loading) {
