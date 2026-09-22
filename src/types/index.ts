@@ -4,6 +4,7 @@ export interface UserProfile {
   email: string;
   avatar: string;
   role?: string;
+  isApproved?: boolean;
   totalInterviews: number;
   createdAt: string;
 }
@@ -180,4 +181,5 @@ export interface InterviewSession {
   answerHistory: AnswerEvaluation[];
   proctoringEvents: ProctoringEvent[];
   finalReport?: FinalReport;
+  videoUrl?: string;
 }
