@@ -19,6 +19,8 @@ import {
   FileCheck,
   ShieldCheck,
   TrendingUp,
+  Youtube,
+  ExternalLink,
 } from "lucide-react";
 import { FinalReport, InterviewSession } from "@/types";
 
@@ -240,8 +242,41 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
           </div>
         </div>
 
+        {/* YouTube Learning Resources for Missing Skills */}
+        {report.atsSummary.missingSkills.length > 0 && (
+          <div className="p-5 bg-indigo-50/50 border border-indigo-200 rounded-2xl space-y-3 mt-5">
+            <div className="flex items-center gap-2 text-indigo-700 text-xs font-bold uppercase tracking-wider">
+              <Youtube className="w-4 h-4 text-indigo-600" />
+              <span>📚 You Can Learn (Top YouTube Resources)</span>
+            </div>
+            <p className="text-xs text-slate-600 mb-3">
+              Watch the top tutorials to quickly learn the skills missing from your resume:
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {report.atsSummary.missingSkills.map((item, idx) => (
+                <a
+                  key={idx}
+                  href={`https://www.youtube.com/results?search_query=best+tutorial+to+learn+${encodeURIComponent(item.skill)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col gap-2 p-3 bg-white border border-indigo-100 hover:border-indigo-300 rounded-xl shadow-sm hover:shadow-md transition-all group"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-slate-800 line-clamp-1 group-hover:text-indigo-700">{item.skill}</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600" />
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-rose-600 uppercase">
+                    <Youtube className="w-3.5 h-3.5" />
+                    <span>Watch Videos</span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Actionable Resume Optimization for this Role */}
-        <div className="p-5 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2.5">
+        <div className="p-5 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2.5 mt-5">
           <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider flex items-center gap-1.5">
             <TrendingUp className="w-4 h-4 text-indigo-600" />
             Resume Improvement Checklist to Qualify for {report.targetRole}
