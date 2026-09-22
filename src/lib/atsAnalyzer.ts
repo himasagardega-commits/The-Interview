@@ -411,13 +411,13 @@ export function calculateAtsScore(
   const jdLower = (jobRole + " " + jdText).toLowerCase();
   
   // Collect all resume skills in lowercase
-  const resumeSkillSet = new Set<string>([
-    ...resume.skills.languages.map(s => s.toLowerCase()),
-    ...resume.skills.frameworks.map(s => s.toLowerCase()),
-    ...resume.skills.toolsAndCloud.map(s => s.toLowerCase()),
-    ...resume.skills.softSkills.map(s => s.toLowerCase()),
-    ...resume.skills.technical.map(s => s.toLowerCase()),
-  ]);
+    const resumeSkillSet = new Set<string>([
+      ...(resume.skills?.languages || []).map(s => s.toLowerCase()),
+      ...(resume.skills?.frameworks || []).map(s => s.toLowerCase()),
+      ...(resume.skills?.toolsAndCloud || []).map(s => s.toLowerCase()),
+      ...(resume.skills?.softSkills || []).map(s => s.toLowerCase()),
+      ...(resume.skills?.technical || []).map(s => s.toLowerCase()),
+    ]);
 
   // Extract role or JD required skills using exact word boundaries
   const allKnownSkills = Array.from(new Set([
@@ -499,9 +499,9 @@ export function calculateAtsScore(
 
   // 4. Formatting & Readability (10%)
   const formattingScore = (resume.email ? 25 : 0) + 
-    (resume.education.length > 0 ? 25 : 0) + 
-    (resume.experience.length > 0 ? 25 : 0) + 
-    (resume.skills.languages.length > 0 ? 25 : 0);
+    (resume.education?.length > 0 ? 25 : 0) + 
+    (resume.experience?.length > 0 ? 25 : 0) + 
+    ((resume.skills?.languages?.length || 0) > 0 ? 25 : 0);
 
   // Weighted Overall ATS Score
   const overallScore = Math.round(

@@ -275,25 +275,25 @@ export const AtsScoreCard: React.FC<AtsScoreCardProps> = ({
                 <div className="p-4 bg-neutral-950/40 rounded-xl border border-neutral-800/60 space-y-2">
                   <span className="text-xs font-semibold text-indigo-400">Languages</span>
                   <p className="text-xs text-neutral-300 leading-relaxed">
-                    {resumeData.skills.languages.join(", ") || "None extracted"}
+                    {resumeData.skills?.languages?.join(", ") || "None extracted"}
                   </p>
                 </div>
                 <div className="p-4 bg-neutral-950/40 rounded-xl border border-neutral-800/60 space-y-2">
                   <span className="text-xs font-semibold text-purple-400">Frameworks</span>
                   <p className="text-xs text-neutral-300 leading-relaxed">
-                    {resumeData.skills.frameworks.join(", ") || "None extracted"}
+                    {resumeData.skills?.frameworks?.join(", ") || "None extracted"}
                   </p>
                 </div>
                 <div className="p-4 bg-neutral-950/40 rounded-xl border border-neutral-800/60 space-y-2">
                   <span className="text-xs font-semibold text-pink-400">Cloud & DevOps</span>
                   <p className="text-xs text-neutral-300 leading-relaxed">
-                    {resumeData.skills.toolsAndCloud.join(", ") || "None extracted"}
+                    {resumeData.skills?.toolsAndCloud?.join(", ") || "None extracted"}
                   </p>
                 </div>
                 <div className="p-4 bg-neutral-950/40 rounded-xl border border-neutral-800/60 space-y-2">
                   <span className="text-xs font-semibold text-emerald-400">Soft Skills</span>
                   <p className="text-xs text-neutral-300 leading-relaxed">
-                    {resumeData.skills.softSkills.join(", ") || "Problem solving, teamwork"}
+                    {resumeData.skills?.softSkills?.join(", ") || "Problem solving, teamwork"}
                   </p>
                 </div>
               </div>
