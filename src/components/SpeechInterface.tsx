@@ -355,39 +355,6 @@ export const SpeechInterface: React.FC<SpeechInterfaceProps> = ({
 
   return (
     <div className="flex flex-col h-full space-y-4 max-w-5xl mx-auto w-full animate-in fade-in zoom-in-95 duration-300">
-      {/* Top Banner: Question Text & AI Voice Controls */}
-      <div className="bg-indigo-900 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-900/20 shrink-0">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3" />
-        
-        <div className="relative z-10 flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm">
-                Q{nextQuestionNumber}
-              </span>
-              <span className="text-xs font-semibold text-indigo-200 uppercase tracking-widest">
-                {currentQuestion.difficulty} Question
-              </span>
-            </div>
-            <button
-              onClick={() => speakQuestion(currentQuestion.questionText)}
-              className={`p-2.5 rounded-full transition-all ${
-                isAiSpeaking
-                  ? "bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 ring-1 ring-rose-500/50"
-                  : "bg-white/10 text-white hover:bg-white/20"
-              }`}
-              title={isAiSpeaking ? "Stop AI Voice" : "Listen to Question"}
-            >
-              {isAiSpeaking ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-            </button>
-          </div>
-
-          <h2 className="text-lg sm:text-xl font-medium leading-relaxed mt-2 text-indigo-50">
-            &quot;{currentQuestion.questionText}&quot;
-          </h2>
-        </div>
-      </div>
-
       {/* Metrics Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
         <div className="p-3 bg-white border border-slate-200/80 rounded-2xl flex items-center gap-3 shadow-xs">
