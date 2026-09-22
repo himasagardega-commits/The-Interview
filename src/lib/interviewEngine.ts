@@ -82,13 +82,13 @@ export function buildSelfIntroTemplateModelAnswer(resume: ResumeData, jobRole: s
   else if (/^jntu\b/i.test(college)) college = "Jawaharlal Nehru Technological University College of Engineering";
 
   const topLanguages = (
-    resume?.skills?.languages?.length ? resume.skills.languages : ["Java", "Python", "TypeScript"]
+    resume?.skills?.languages?.length ? resume?.skills?.languages : ["Java", "Python", "TypeScript"]
   )
     .slice(0, 4)
     .join(", ");
   const topFrameworks = (
     resume?.skills?.frameworks?.length
-      ? resume.skills.frameworks
+      ? resume?.skills?.frameworks
       : ["React", "Next.js", "Spring Boot", "Node.js"]
   )
     .slice(0, 4)
@@ -256,9 +256,9 @@ export async function evaluateCandidateAnswer(
 
   // Bonus for relevant key technologies mentioned
   const allCandidateTech = [
-    ...(resume.skills.languages || []),
-    ...(resume.skills.frameworks || []),
-    ...(resume.skills.toolsAndCloud || []),
+    ...(resume?.skills?.languages || []),
+    ...(resume?.skills?.frameworks || []),
+    ...(resume?.skills?.toolsAndCloud || []),
   ];
   const techMatches = allCandidateTech.filter((t) =>
     answerLower.includes(t.toLowerCase())
