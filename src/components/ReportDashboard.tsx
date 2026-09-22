@@ -281,13 +281,24 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
             <TrendingUp className="w-4 h-4 text-indigo-600" />
             Resume Improvement Checklist to Qualify for {report.targetRole}
           </span>
-          <ul className="space-y-2 text-xs text-slate-700">
+          <ul className="space-y-3 text-xs text-slate-700 mt-2">
             {report.atsSummary.improvementRecommendations.map((rec, idx) => (
-              <li key={idx} className="flex items-start gap-2.5">
-                <span className="w-4 h-4 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
-                  {idx + 1}
-                </span>
-                <span className="leading-relaxed">{rec}</span>
+              <li key={idx} className="flex flex-col sm:flex-row sm:items-start gap-2.5 p-3 bg-white border border-slate-100 shadow-sm rounded-xl">
+                <div className="flex items-start gap-2.5 flex-1">
+                  <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                    {idx + 1}
+                  </span>
+                  <span className="leading-relaxed text-sm text-slate-700">{rec}</span>
+                </div>
+                <a
+                  href={`https://www.youtube.com/results?search_query=how+to+${encodeURIComponent(rec)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[11px] font-bold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg border border-rose-100 transition-colors shrink-0 sm:mt-0 mt-2 sm:ml-0 ml-7"
+                >
+                  <Youtube className="w-3.5 h-3.5" />
+                  Find Videos
+                </a>
               </li>
             ))}
           </ul>
