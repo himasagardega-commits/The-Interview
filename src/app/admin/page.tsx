@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getStoredUser } from "@/lib/storage";
-import { CheckCircle, XCircle, Shield, Trash2, LogOut } from "lucide-react";
+import { CheckCircle, XCircle, Shield, Trash2, LogOut, Users } from "lucide-react";
 
 interface Manager {
   id: string;
@@ -91,13 +91,22 @@ export default function AdminDashboard() {
               <p className="text-sm text-slate-500">Manage recruiter and manager access</p>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => router.push("/manager")}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition"
+            >
+              <Users className="w-4 h-4" />
+              View Candidate Interviews
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
+          </div>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
