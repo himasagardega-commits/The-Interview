@@ -70,6 +70,11 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({
   const [isEvaluated, setIsEvaluated] = useState<boolean>(false);
   const [pendingNextQuestion, setPendingNextQuestion] = useState<QuestionItem | null>(null);
   const [isDeviceSetupComplete, setIsDeviceSetupComplete] = useState<boolean>(false);
+  
+  const [videoUrl, setVideoUrl] = useState<string | null>(session.videoUrl || null);
+  const fullSessionRecorderRef = useRef<MediaRecorder | null>(null);
+  const fullSessionChunksRef = useRef<BlobPart[]>([]);
+  const isUploadingRef = useRef(false);
 
   // Proctoring Security Violation State
   const [terminationViolation, setTerminationViolation] = useState<ViolationRecord | null>(() => {
@@ -207,6 +212,29 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({
     },
     [session, questions, answers, currentQuestionIndex, currentDifficulty]
   );
+
+  // START FULL SESSION RECORDING
+  useEffect(() => {
+    if (isDeviceSetupComplete && !fullSessionRecorderRef.current) {
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then((stream) => {
+        const recorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) fullSessionChunksRef.current.push(e.data);
+        };
+        recorder.start();
+        fullSessionRecorderRef.current = recorder;
+      }).catch(err => {
+        console.error("Failed to start full session video recording:", err);
+      });
+    }
+
+    return () => {
+      if (fullSessionRecorderRef.current && fullSessionRecorderRef.current.state !== "inactive") {
+        fullSessionRecorderRef.current.stop();
+        fullSessionRecorderRef.current.stream.getTracks().forEach(t => t.stop());
+      }
+    };
+  }, [isDeviceSetupComplete]);
 
   // 1. Detection: Window Minimized or Tab Switched (Page Visibility API)
   useEffect(() => {
@@ -534,6 +562,38 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({
     }
   };
 
+  const finishAndUploadVideo = async (finalSession: InterviewSession) => {
+    if (fullSessionRecorderRef.current && fullSessionRecorderRef.current.state !== "inactive") {
+      setIsEvaluating(true);
+      
+      const uploadPromise = new Promise<string | null>((resolve) => {
+        fullSessionRecorderRef.current!.onstop = async () => {
+          try {
+            const blob = new Blob(fullSessionChunksRef.current, { type: "video/webm" });
+            const formData = new FormData();
+            formData.append("video", blob, "interview.webm");
+            
+            const res = await fetch("/api/upload-video", { method: "POST", body: formData });
+            const data = await res.json();
+            resolve(data.videoUrl || null);
+          } catch (e) {
+            console.error("Video upload failed:", e);
+            resolve(null);
+          }
+        };
+        fullSessionRecorderRef.current!.stop();
+        fullSessionRecorderRef.current!.stream.getTracks().forEach(t => t.stop());
+      });
+
+      const url = await uploadPromise;
+      if (url) {
+        finalSession.videoUrl = url;
+      }
+    }
+    
+    onCompleteInterview(finalSession);
+  };
+
   const handleProceedToNextQuestion = () => {
     const nextQuestionNum = currentQuestionIndex + 2;
 
@@ -547,7 +607,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({
         currentQuestionIndex: TOTAL_QUESTIONS_TARGET,
         currentDifficulty,
       };
-      onCompleteInterview(updatedSession);
+      finishAndUploadVideo(updatedSession);
       return;
     }
 
@@ -572,7 +632,7 @@ export const InterviewRoom: React.FC<InterviewRoomProps> = ({
       currentQuestionIndex,
       currentDifficulty,
     };
-    onCompleteInterview(updatedSession);
+    finishAndUploadVideo(updatedSession);
   };
 
   const difficultyColor =
