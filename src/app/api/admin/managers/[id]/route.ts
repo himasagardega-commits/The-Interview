@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const { isApproved } = await req.json();
 
     const updatedUser = await prisma.user.update({
-      where: { id: params.id, role: "MANAGER" },
+      where: { id, role: "MANAGER" },
       data: { isApproved },
       select: {
         id: true,
@@ -23,10 +24,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     await prisma.user.delete({
-      where: { id: params.id, role: "MANAGER" },
+      where: { id, role: "MANAGER" },
     });
 
     return NextResponse.json({ success: true });
