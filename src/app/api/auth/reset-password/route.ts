@@ -18,9 +18,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const isSamePassword = await bcrypt.compare(newPassword, user.passwordHash);
-    if (isSamePassword) {
-      return NextResponse.json({ error: "New password cannot be the same as your old password." }, { status: 400 });
+    if (user.passwordHash) {
+      const isSamePassword = await bcrypt.compare(newPassword, user.passwordHash);
+      if (isSamePassword) {
+        return NextResponse.json({ error: "New password cannot be the same as your old password." }, { status: 400 });
+      }
     }
 
     const salt = await bcrypt.genSalt(10);

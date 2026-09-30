@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Sparkles, Mail, Lock, User, ArrowRight, KeyRound, CheckCircle2 } from "lucide-react";
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 
 export const LoginPage: React.FC = () => {
-  const { loginWithEmail, registerWithEmail, checkUserExists, resetPassword } = useAuth();
+  const { loginWithEmail, loginWithGoogle, registerWithEmail, checkUserExists, resetPassword } = useAuth();
   
   const [view, setView] = useState<"login" | "register" | "forgot" | "reset">("login");
   
@@ -46,6 +47,17 @@ export const LoginPage: React.FC = () => {
       await loginWithEmail(email, password);
     } catch (err: any) {
       setError(err.message || "Authentication failed.");
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    clearMessages();
+    try {
+      if (loginWithGoogle) {
+         await loginWithGoogle(credentialResponse.credential);
+      }
+    } catch (err: any) {
+      setError(err.message || "Google Authentication failed.");
     }
   };
 
@@ -146,7 +158,8 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50">
+    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
+      <div className="min-h-screen flex bg-slate-50">
       
       {/* Left Form Side */}
       <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 relative z-10">
@@ -250,6 +263,25 @@ export const LoginPage: React.FC = () => {
                   Sign In
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
+
+                <div className="relative flex items-center py-2">
+                  <div className="flex-grow border-t border-slate-200"></div>
+                  <span className="flex-shrink-0 mx-4 text-slate-400 text-xs">Or continue with</span>
+                  <div className="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                <div className="flex justify-center w-full">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => setError("Google Login failed.")}
+                    useOneTap
+                    shape="rectangular"
+                    theme="outline"
+                    text="continue_with"
+                    size="large"
+                    width="100%"
+                  />
+                </div>
               </form>
             )}
 
@@ -331,6 +363,24 @@ export const LoginPage: React.FC = () => {
                   Create Account
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
+                
+                <div className="relative flex items-center py-2">
+                  <div className="flex-grow border-t border-slate-200"></div>
+                  <span className="flex-shrink-0 mx-4 text-slate-400 text-xs">Or continue with</span>
+                  <div className="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                <div className="flex justify-center w-full">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => setError("Google Login failed.")}
+                    shape="rectangular"
+                    theme="outline"
+                    text="signup_with"
+                    size="large"
+                    width="100%"
+                  />
+                </div>
               </form>
             )}
 
@@ -479,5 +529,6 @@ export const LoginPage: React.FC = () => {
         </div>
       </div>
     </div>
+    </GoogleOAuthProvider>
   );
 };
