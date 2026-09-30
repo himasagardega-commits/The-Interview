@@ -18,6 +18,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
+    if (!user.passwordHash) {
+      return NextResponse.json({ error: "Please log in with Google." }, { status: 401 });
+    }
+
     const isMatch = await bcrypt.compare(password, user.passwordHash);
 
     if (!isMatch) {
@@ -34,6 +38,6 @@ export async function POST(req: Request) {
     });
   } catch (error: any) {
     console.error("Login error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
   }
 }

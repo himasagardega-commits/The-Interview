@@ -8,6 +8,7 @@ interface AuthContextType {
   user: UserProfile | null;
   isLoading: boolean;
   loginWithEmail: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
   registerWithEmail: (email: string, password: string, name: string) => Promise<void>;
   checkUserExists: (email: string) => Promise<boolean>;
   resetPassword: (email: string, newPassword: string) => Promise<void>;
@@ -46,6 +47,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       name: data.user.name,
       email: data.user.email,
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.name)}&background=4f46e5&color=fff&bold=true`,
+      role: data.user.role || "CANDIDATE",
+      isApproved: data.user.isApproved,
+      totalInterviews: 0,
+      createdAt: data.user.createdAt,
+    };
+    
+    setUser(profileUser);
+    setStoredUser(profileUser);
+  };
+
+  const loginWithGoogle = async (credential: string) => {
+    const response = await fetch("/api/auth/google", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Google authentication failed.");
+    }
+
+    const profileUser: UserProfile = {
+      id: data.user.id,
+      name: data.user.name,
+      email: data.user.email,
+      avatar: data.user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.name)}&background=4f46e5&color=fff&bold=true`,
       role: data.user.role || "CANDIDATE",
       isApproved: data.user.isApproved,
       totalInterviews: 0,
@@ -106,6 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         isLoading,
         loginWithEmail,
+        loginWithGoogle,
         registerWithEmail,
         checkUserExists,
         resetPassword,
