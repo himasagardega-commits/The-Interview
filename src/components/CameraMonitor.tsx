@@ -37,7 +37,8 @@ export const CameraMonitor: React.FC<CameraMonitorProps> = ({
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [engagementScore, setEngagementScore] = useState<number>(97);
   const [postureState, setPostureState] = useState<PostureType>("Centered & Focused");
-
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+  
   // Track face bounding box overlay in percentage (mirrored space)
   const [reticleBox, setReticleBox] = useState<{
     left: number;
@@ -48,20 +49,39 @@ export const CameraMonitor: React.FC<CameraMonitorProps> = ({
 
   // Native face detector reference if supported
   const nativeDetectorRef = useRef<any>(null);
+  const faceApiRef = useRef<any>(null);
   const awayCounterRef = useRef<number>(0);
 
-  // Initialize Native FaceDetector if available in Chromium
+  // Initialize FaceAPI and Native FaceDetector
   useEffect(() => {
-    if (typeof window !== "undefined" && "FaceDetector" in window) {
-      try {
-        nativeDetectorRef.current = new (window as any).FaceDetector({
-          fastMode: true,
-          maxDetectedFaces: 1,
-        });
-      } catch {
-        nativeDetectorRef.current = null;
+    let isMounted = true;
+    
+    // Load face-api.js dynamically to avoid SSR crash
+    if (typeof window !== "undefined") {
+      import("@vladmandic/face-api").then((api) => {
+        if (!isMounted) return;
+        faceApiRef.current = api;
+        Promise.all([
+          api.nets.tinyFaceDetector.loadFromUri("/models/model"),
+          api.nets.faceLandmark68Net.loadFromUri("/models/model"),
+        ]).then(() => {
+          if (isMounted) setModelsLoaded(true);
+        }).catch(err => console.error("Failed to load FaceAPI models", err));
+      });
+      
+      if ("FaceDetector" in window) {
+        try {
+          nativeDetectorRef.current = new (window as any).FaceDetector({
+            fastMode: true,
+            maxDetectedFaces: 1,
+          });
+        } catch {
+          nativeDetectorRef.current = null;
+        }
       }
     }
+    
+    return () => { isMounted = false; };
   }, []);
 
   // 1. Camera Initialization with lifecycle safety and unmount cancellation
@@ -162,10 +182,78 @@ export const CameraMonitor: React.FC<CameraMonitorProps> = ({
 
     let detectedPosture: PostureType = "Centered & Focused";
     let targetScore = 97;
+    let handledByTracker = false;
+    
+    // Priority 1: High-Fidelity 68-Point FaceAPI Tracking (Highly accurate gaze/turn detection)
+    if (modelsLoaded && faceApiRef.current) {
+      try {
+        const api = faceApiRef.current;
+        const detections = await api.detectSingleFace(video, new api.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.3 })).withFaceLandmarks();
+        if (detections) {
+          handledByTracker = true;
+          const landmarks = detections.landmarks;
+          const nose = landmarks.getNose()[0];
+          const jawline = landmarks.getJawOutline();
+          const leftEye = landmarks.getLeftEye()[0];
+          const rightEye = landmarks.getRightEye()[0];
+          
+          const leftEdge = jawline[0];
+          const rightEdge = jawline[16];
+          
+          const noseToLeft = nose.x - leftEdge.x;
+          const noseToRight = rightEdge.x - nose.x;
+          const turnRatio = noseToLeft / (noseToRight + 1);
 
-    // Check if Native FaceDetector is supported and works in Chromium
-    let handledByNative = false;
-    if (nativeDetectorRef.current) {
+          // Video is mirrored visually (-scale-x-100), but raw coordinates are standard.
+          if (turnRatio < 0.6) {
+             detectedPosture = "Turned Right";
+             targetScore = 72;
+          } else if (turnRatio > 1.6) {
+             detectedPosture = "Turned Left";
+             targetScore = 72;
+          } else {
+             const eyeY = (leftEye.y + rightEye.y) / 2;
+             const noseY = nose.y;
+             const jawY = jawline[8].y; 
+             
+             const eyeToNose = noseY - eyeY;
+             const noseToJaw = jawY - noseY;
+             const pitchRatio = eyeToNose / (noseToJaw + 1);
+             
+             if (pitchRatio < 0.6) {
+                detectedPosture = "Looking Up";
+                targetScore = 75;
+             } else if (pitchRatio > 1.25) {
+                detectedPosture = "Looking Down";
+                targetScore = 70;
+             } else {
+                detectedPosture = "Centered & Focused";
+                targetScore = 98;
+             }
+          }
+          
+          const box = detections.detection.box;
+          const videoW = video.videoWidth;
+          const videoH = video.videoHeight;
+          const screenLeftPct = Math.max(5, Math.min(75, (1 - (box.x + box.width) / videoW) * 100));
+          const topPct = Math.max(5, Math.min(75, (box.y / videoH) * 100));
+          const widthPct = Math.max(22, Math.min(55, (box.width / videoW) * 100));
+          const heightPct = Math.max(28, Math.min(65, (box.height / videoH) * 100));
+
+          setReticleBox((prev) => ({
+            left: Math.round(prev.left * 0.5 + screenLeftPct * 0.5),
+            top: Math.round(prev.top * 0.5 + topPct * 0.5),
+            width: Math.round(prev.width * 0.5 + widthPct * 0.5),
+            height: Math.round(prev.height * 0.5 + heightPct * 0.5),
+          }));
+        }
+      } catch (e) {
+        // Fallback to Native
+      }
+    }
+
+    // Priority 2: Check if Native FaceDetector is supported and works in Chromium
+    if (!handledByTracker && nativeDetectorRef.current) {
       try {
         const faces = await nativeDetectorRef.current.detect(video);
         if (faces && faces.length > 0) {
@@ -236,7 +324,7 @@ export const CameraMonitor: React.FC<CameraMonitorProps> = ({
 
     // High-Precision Connected-Component Face Clusterer in Screen Space (Cross-Browser Universal)
     // Isolates the candidate's actual head in the center and rejects background wooden furniture/walls
-    if (!handledByNative) {
+    if (!handledByNative && !handledByTracker) {
       if (!canvasRef.current) {
         canvasRef.current = document.createElement("canvas");
         canvasRef.current.width = 160;
