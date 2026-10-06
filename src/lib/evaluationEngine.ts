@@ -205,14 +205,26 @@ export async function generateInterviewReport(
     preparationRoadmap,
     averageWpm,
     totalFillerWords,
+    proctoringSummary: {
+      totalWarnings: session.proctoringEvents?.length || 0,
+      behavioralAnalysis: session.proctoringEvents?.length > 0 
+        ? `The candidate triggered ${session.proctoringEvents.length} attention warnings during the session. Eye contact and focus were inconsistent.`
+        : "The candidate maintained excellent focus and eye contact throughout the interview. No suspicious behavior was detected."
+    }
   };
 
   // If Gemini / OpenAI API is available, enrich with tailored multi-perspective feedback
+  const proctoringCount = session.proctoringEvents?.length || 0;
+  const proctoringDetails = session.proctoringEvents
+    ?.map((e) => `[${new Date(e.timestamp).toISOString()}] ${e.message}`)
+    .join("\n") || "No suspicious events recorded.";
+
   const prompt = `
 Generate a comprehensive interview performance diagnostic report.
 Role: ${targetRole}
 Candidate Name: ${resumeData.candidateName}
 Total Questions Evaluated: ${uniqueAnswers.length}
+Total Proctoring/Attention Warnings: ${proctoringCount}
 
 Questions & Answers:
 ${uniqueAnswers
@@ -222,6 +234,9 @@ ${uniqueAnswers
   )
   .join("\n\n")}
 
+Candidate Attention & Proctoring Log:
+${proctoringDetails}
+
 Provide:
 1. overallScore (0-100)
 2. recommendation ("Strong Hire" | "Hire" | "Leaning Hire" | "Needs Improvement")
@@ -230,6 +245,7 @@ Provide:
 5. criticalWeaknesses (2-3 bullet points)
 6. technicalGaps (2-3 bullet points)
 7. preparationRoadmap (3 structured steps with step number, title, description, and list of resources. CRITICAL: Do NOT recommend any mock interview platforms or general practice websites. Instead, for every step's resources, provide specific popular English-language YouTube video titles that teach the missing skills, ending with ' (YouTube)' so the user knows it is a video.)
+8. proctoringSummary: { totalWarnings: ${proctoringCount}, behavioralAnalysis: "Write a 2-3 sentence analysis of their focus, eye contact, and adherence to rules based on the Proctoring Log." }
 
 Respond strictly in JSON matching the schema.
 `;
