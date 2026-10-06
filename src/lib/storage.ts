@@ -23,7 +23,7 @@ export const setStoredApiKey = (key: string): void => {
 
 export const getStoredUser = (): UserProfile | null => {
   if (typeof window === "undefined") return null;
-  const raw = localStorage.getItem(STORAGE_KEYS.USER_PROFILE) || localStorage.getItem("talentpulse_user_profile");
+  const raw = sessionStorage.getItem(STORAGE_KEYS.USER_PROFILE) || sessionStorage.getItem("talentpulse_user_profile");
   if (!raw) return null;
   try {
     return JSON.parse(raw);
@@ -35,8 +35,10 @@ export const getStoredUser = (): UserProfile | null => {
 export const setStoredUser = (user: UserProfile | null): void => {
   if (typeof window === "undefined") return;
   if (user) {
-    localStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(user));
+    sessionStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(user));
   } else {
+    sessionStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
+    sessionStorage.removeItem("talentpulse_user_profile");
     localStorage.removeItem(STORAGE_KEYS.USER_PROFILE);
     localStorage.removeItem("talentpulse_user_profile");
   }

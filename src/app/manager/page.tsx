@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getStoredUser } from "@/lib/storage";
+import { useAuth } from "@/context/AuthContext";
 import { Briefcase, PlayCircle, FileText, ChevronDown, ChevronUp, Users, LogOut, CheckCircle2, AlertTriangle, ShieldCheck } from "lucide-react";
 
 interface Evaluation {
@@ -60,8 +61,10 @@ export default function ManagerDashboard() {
     }
   };
 
+  const { logout } = useAuth();
+
   const handleLogout = () => {
-    localStorage.removeItem("the_interview_user_profile");
+    logout();
     router.push("/");
   };
 

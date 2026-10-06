@@ -189,7 +189,10 @@ export default function Home() {
             </p>
             <button
               onClick={() => {
+                sessionStorage.removeItem("the_interview_user_profile");
+                sessionStorage.removeItem("talentpulse_user_profile");
                 localStorage.removeItem("the_interview_user_profile");
+                localStorage.removeItem("talentpulse_user_profile");
                 window.location.reload();
               }}
               className="text-sm font-bold text-indigo-600 hover:text-indigo-700"
