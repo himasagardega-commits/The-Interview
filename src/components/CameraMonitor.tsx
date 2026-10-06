@@ -194,17 +194,17 @@ export const CameraMonitor: React.FC<CameraMonitorProps> = ({
           const screenFaceCenterX = 1 - (box.x + box.width / 2) / videoW;
           const screenFaceCenterY = (box.y + box.height / 2) / videoH;
 
-          // Check if face center deviates significantly
-          if (screenFaceCenterX < 0.35) {
+          // Check if face center deviates significantly (Highly sensitive)
+          if (screenFaceCenterX < 0.40) {
             detectedPosture = "Turned Left";
             targetScore = 72;
-          } else if (screenFaceCenterX > 0.65) {
+          } else if (screenFaceCenterX > 0.60) {
             detectedPosture = "Turned Right";
             targetScore = 72;
-          } else if (screenFaceCenterY > 0.70) {
+          } else if (screenFaceCenterY > 0.65) {
             detectedPosture = "Looking Down";
             targetScore = 70;
-          } else if (screenFaceCenterY < 0.20) {
+          } else if (screenFaceCenterY < 0.25) {
             detectedPosture = "Looking Up";
             targetScore = 75;
           } else {
@@ -447,23 +447,23 @@ export const CameraMonitor: React.FC<CameraMonitorProps> = ({
             const skinRatioLeft = leftSkin / (rightSkin + 1);
             const skinRatioRight = rightSkin / (leftSkin + 1);
 
-            // Posture evaluation with realistic deadband
+            // Posture evaluation with realistic deadband (Highly sensitive)
             if (
-              screenNormX < 0.35 ||
-              (skinRatioLeft > 1.6 && rightHair > leftHair * 1.3)
+              screenNormX < 0.40 ||
+              (skinRatioLeft > 1.4 && rightHair > leftHair * 1.2)
             ) {
               detectedPosture = "Turned Left";
               targetScore = 72;
             } else if (
-              screenNormX > 0.65 ||
-              (skinRatioRight > 1.6 && leftHair > rightHair * 1.3)
+              screenNormX > 0.60 ||
+              (skinRatioRight > 1.4 && leftHair > rightHair * 1.2)
             ) {
               detectedPosture = "Turned Right";
               targetScore = 72;
-            } else if (screenNormY > 0.70) {
+            } else if (screenNormY > 0.65) {
               detectedPosture = "Looking Down";
               targetScore = 70;
-            } else if (screenNormY < 0.20) {
+            } else if (screenNormY < 0.25) {
               detectedPosture = "Looking Up";
               targetScore = 75;
             } else {
@@ -724,9 +724,9 @@ export const CameraMonitor: React.FC<CameraMonitorProps> = ({
 
           {/* Turn / Attention Warning Toast if candidate turns away */}
           {!isCentered && (
-            <div className="absolute top-12 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-amber-500 text-slate-950 font-bold text-[11px] shadow-lg backdrop-blur-md flex items-center gap-2 pointer-events-none animate-in fade-in zoom-in duration-150">
-              <ShieldAlert className="w-3.5 h-3.5 text-slate-950" />
-              <span>Face Camera Notice: {postureState}</span>
+            <div className="absolute top-12 left-1/2 -translate-x-1/2 px-3.5 py-1.5 rounded-full bg-rose-500 text-white font-bold text-xs shadow-lg backdrop-blur-md flex items-center gap-2 pointer-events-none animate-in fade-in zoom-in duration-150">
+              <ShieldAlert className="w-4 h-4 text-white" />
+              <span>Please be focused on the camera! ({postureState})</span>
             </div>
           )}
 
