@@ -154,6 +154,32 @@ export const DeviceSetup: React.FC<DeviceSetupProps> = ({ onSetupComplete, onCan
             )}
           </div>
 
+          {/* Interview Rules */}
+          <div className="mb-8 bg-indigo-50/50 border border-indigo-100 rounded-xl p-5">
+            <h3 className="text-sm font-bold text-indigo-900 flex items-center gap-2 mb-3">
+              <ShieldCheck className="w-4 h-4 text-indigo-600" />
+              Interview Rules & Guidelines
+            </h3>
+            <ul className="space-y-2.5 text-xs text-indigo-800/80 font-medium">
+              <li className="flex items-start gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0"></div>
+                Do not take screenshots, minimize the screen, or switch tabs. Doing so will be recorded.
+              </li>
+              <li className="flex items-start gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0"></div>
+                Please use earphones or a headset for the best microphone detection.
+              </li>
+              <li className="flex items-start gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0"></div>
+                Sit in a quiet room with no background noise.
+              </li>
+              <li className="flex items-start gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0"></div>
+                Look straight ahead at the camera to ensure accurate attention tracking and avoid misleading proctoring flags.
+              </li>
+            </ul>
+          </div>
+
           {/* Actions */}
           <div className="flex items-center gap-4">
             <button
