@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getStoredUser } from "@/lib/storage";
+import { useAuth } from "@/context/AuthContext";
 import { CheckCircle, XCircle, Shield, Trash2, LogOut, Users } from "lucide-react";
 
 interface Manager {
@@ -69,8 +70,10 @@ export default function AdminDashboard() {
     }
   };
 
+  const { logout } = useAuth();
+
   const handleLogout = () => {
-    localStorage.removeItem("the_interview_user_profile");
+    logout();
     router.push("/");
   };
 
