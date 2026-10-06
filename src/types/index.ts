@@ -165,6 +165,10 @@ export interface FinalReport {
   }>;
   averageWpm: number;
   totalFillerWords: number;
+  proctoringSummary?: {
+    totalWarnings: number;
+    behavioralAnalysis: string;
+  };
 }
 
 export interface InterviewSession {

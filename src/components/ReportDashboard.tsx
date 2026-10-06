@@ -21,6 +21,7 @@ import {
   TrendingUp,
   PlayCircle,
   ExternalLink,
+  ShieldAlert,
 } from "lucide-react";
 import { FinalReport, InterviewSession } from "@/types";
 
@@ -145,6 +146,42 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Proctoring & Attention Overview */}
+      {report.proctoringSummary && (
+        <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 space-y-5 shadow-xl shadow-slate-200/40">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-rose-600 text-xs font-bold uppercase tracking-wider">
+                <ShieldAlert className="w-4 h-4" />
+                <span>Interview Proctoring</span>
+              </div>
+              <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                Candidate Attention & Focus Analysis
+              </h2>
+            </div>
+            <div className={`shrink-0 text-center px-4 py-2 border rounded-xl ${
+              report.proctoringSummary.totalWarnings > 0 
+                ? 'bg-amber-50 border-amber-200' 
+                : 'bg-emerald-50 border-emerald-200'
+            }`}>
+              <span className={`block text-2xl font-black leading-none mb-1 ${
+                report.proctoringSummary.totalWarnings > 0 ? 'text-amber-700' : 'text-emerald-700'
+              }`}>
+                {report.proctoringSummary.totalWarnings}
+              </span>
+              <span className={`text-[10px] uppercase font-bold ${
+                report.proctoringSummary.totalWarnings > 0 ? 'text-amber-600' : 'text-emerald-600'
+              }`}>
+                Focus Warnings
+              </span>
+            </div>
+          </div>
+          <p className="text-sm text-slate-700 leading-relaxed font-medium">
+            {report.proctoringSummary.behavioralAnalysis}
+          </p>
+        </div>
+      )}
 
       {/* AI Resume Evaluation for Target Role: Missing Fields & Gap Analysis */}
       <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl shadow-slate-200/40">
